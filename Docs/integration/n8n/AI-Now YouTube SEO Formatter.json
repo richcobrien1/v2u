@@ -1,0 +1,106 @@
+{
+  "name": "AI-Now YouTube SEO Formatter",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "1",
+      "name": "Manual Trigger",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [250, 300]
+    },
+    {
+      "parameters": {
+        "text": "{{$json[\"transcript\"]}}",
+        "additionalFields": {}
+      },
+      "id": "2",
+      "name": "Keyword Cluster Selector",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 1,
+      "position": [500, 300],
+      "notes": "Scores transcript against predefined keyword clusters and picks the best match.",
+      "code": "const clusters = {\n  'AI Education': ['education','training','learning','upskilling'],\n  'Automation': ['automation','workflow','process','robotic'],\n  'AI Ethics': ['ethics','bias','privacy','responsibility'],\n  'AI Trends': ['trends','future','emerging','latest','breakthrough'],\n  'Podcast Discovery': ['podcast','episode','listen','subscribe']\n};\n\nconst text = $json[\"transcript\"].toLowerCase();\nlet bestCluster = '';\nlet bestScore = 0;\n\nfor (const [cluster, keywords] of Object.entries(clusters)) {\n  let score = 0;\n  keywords.forEach(k => {\n    const matches = text.match(new RegExp(`\\\\b${k}\\\\b`, 'g'));\n    if (matches) score += matches.length;\n  });\n  if (score > bestScore) {\n    bestScore = score;\n    bestCluster = cluster;\n  }\n}\n\nreturn [{ json: { primaryCluster: bestCluster || 'AI Trends', transcript: $json[\"transcript\"] } }];"
+    },
+    {
+      "parameters": {
+        "mode": "chat",
+        "systemMessage": "You are an SEO copywriter for the AI-Now YouTube channel. Using the provided transcript and primary keyword cluster, generate:\n1. Title: 'AI-Now - [Primary Keyword]: [Hook Phrase] - Deep Dive with Alex and Jessica' (≤70 chars)\n2. Primary Keyword Cluster: [cluster]\n3. Description: 150–250 words, hook with primary keyword, 3–5 bullet points with secondary keywords, timestamps, call to action, 5–8 hashtags.\n4. Tags: 10–15 comma-separated tags mixing primary, secondary, and branded terms (AINow, AI-Now Podcast, v2uAI).\nOutput exactly in this format:\nTitle: ...\nPrimary Keyword Cluster: ...\nDescription: ...\nTags: ...",
+        "messages": [
+          {
+            "text": "Transcript:\n{{$json[\"transcript\"]}}\n\nPrimary Keyword Cluster: {{$json[\"primaryCluster\"]}}",
+            "type": "user"
+          }
+        ]
+      },
+      "id": "3",
+      "name": "Generate SEO Package",
+      "type": "n8n-nodes-base.openAi",
+      "typeVersion": 1,
+      "position": [750, 300],
+      "credentials": {
+        "openAiApi": "Your OpenAI API Credential Name"
+      }
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "sheetId": "YOUR_GOOGLE_SHEET_ID",
+        "range": "SEO_Outputs!A:D",
+        "options": {},
+        "valueInputMode": "RAW",
+        "values": [
+          [
+            "={{$json[\"data\"].split('\\n')[0].replace('Title: ','')}}",
+            "={{$json[\"data\"].split('\\n')[1].replace('Primary Keyword Cluster: ','')}}",
+            "={{$json[\"data\"].split('\\n').slice(2,-1).join('\\n').replace('Description: ','')}}",
+            "={{$json[\"data\"].split('\\n').pop().replace('Tags: ','')}}"
+          ]
+        ]
+      },
+      "id": "4",
+      "name": "Save to Google Sheet",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 3,
+      "position": [1000, 300],
+      "credentials": {
+        "googleApi": "Your Google API Credential Name"
+      }
+    }
+  ],
+  "connections": {
+    "Manual Trigger": {
+      "main": [
+        [
+          {
+            "node": "Keyword Cluster Selector",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Keyword Cluster Selector": {
+      "main": [
+        [
+          {
+            "node": "Generate SEO Package",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate SEO Package": {
+      "main": [
+        [
+          {
+            "node": "Save to Google Sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  }
+}
