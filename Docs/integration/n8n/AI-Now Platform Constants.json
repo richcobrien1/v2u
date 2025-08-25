@@ -1,0 +1,41 @@
+{
+  "brand": {
+    "name": "AI-Now",
+    "tagline": "Educating the world about the latest in AI",
+    "logoPath": "/assets/ai-now-logo.png",
+    "primaryColor": "#0A84FF",
+    "secondaryColor": "#1C1C1E"
+  },
+  "seo": {
+    "titleFormat": "AI-Now Ep. {{episodeNumber}}: {{seoKeywordHook}}",
+    "dateFormat": "YYYY-MM-DD",
+    "defaultKeywords": [
+      "Artificial Intelligence",
+      "AI News",
+      "Machine Learning",
+      "Tech Podcast",
+      "AI Commentary"
+    ],
+    "hashtagBank": "#AINow #ArtificialIntelligence #TechPodcast #MachineLearning #AICommentary"
+  },
+  "links": {
+    "youtube": "https://youtube.com/@AINow",
+    "rumble": "https://rumble.com/c/AINow",
+    "facebook": "https://facebook.com/AINowPodcast",
+    "instagram": "https://instagram.com/AINowPodcast",
+    "linkedin": "https://linkedin.com/company/ai-now-podcast",
+    "x": "https://x.com/AINowPodcast",
+    "tumblr": "https://ainowpodcast.tumblr.com",
+    "localSite": "https://ainowpodcast.com"
+  },
+  "cta": {
+    "subscribe": "🎙 Subscribe for weekly AI insights",
+    "watchFull": "▶ Watch the full episode here:",
+    "followUs": "🔗 Follow us everywhere:",
+    "linkInBio": "Full episode link in bio"
+  },
+  "templates": {
+    "descriptionFooter": "\n\n—\n🎙 AI-Now: Your trusted AI commentary hub.\nSubscribe: {{links.youtube}}\nFollow: {{links.facebook}}, {{links.instagram}}, {{links.linkedin}}, {{links.x}}, {{links.tumblr}}, {{links.localSite}}",
+    "threadClosing": "Full episode: {{links.youtube}}"
+  }
+}
