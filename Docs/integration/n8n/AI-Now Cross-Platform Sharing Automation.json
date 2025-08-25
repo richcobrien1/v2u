@@ -137,7 +137,7 @@
       "type": "googleSheets",
       "parameters": {
         "action": "append",
-        "sheetId": "YOUR_SHEET_ID",
+        "sheetId": "1r11I2Jcmu_ipfIzz9rOKFpJAdxo8TOZVX2pUXG20xSQ",
         "range": "ContentLog!A:E",
         "values": "={{[$json[\"publishDate\"], $json[\"episodeNumber\"], $json[\"seoKeywordHook\"], $json[\"youtubeLink\"], 'Published']}}"
       }
