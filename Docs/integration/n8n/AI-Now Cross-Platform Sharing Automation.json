@@ -1,0 +1,154 @@
+{
+  "name": "AI-Now Cross-Share Automation",
+  "nodes": [
+    {
+      "id": "1",
+      "name": "YouTube Trigger",
+      "type": "youtubeTrigger",
+      "parameters": {
+        "event": "newVideo",
+        "channelId": "YOUR_YOUTUBE_CHANNEL_ID"
+      }
+    },
+    {
+      "id": "2",
+      "name": "Set Brand Anchors",
+      "type": "set",
+      "parameters": {
+        "values": {
+          "string": {
+            "brandName": "AI-Now",
+            "titleFormat": "AI-Now Ep. {{episodeNumber}}: {{seoKeywordHook}}",
+            "descriptionFooter": "\n\n—\n🎙 AI-Now: Your trusted AI commentary hub.\nSubscribe: {{youtubeLink}}\nFollow: {{allPlatformLinks}}",
+            "dateFormat": "YYYY-MM-DD",
+            "logoPath": "/assets/ai-now-logo.png",
+            "hashtagBank": "#AINow #ArtificialIntelligence #TechPodcast"
+          }
+        }
+      }
+    },
+    {
+      "id": "3",
+      "name": "Extract Episode Metadata",
+      "type": "function",
+      "parameters": {
+        "functionCode": "return [{ json: {\n  episodeNumber: $json[\"title\"].match(/Ep\\.?\\s?(\\d+)/i)?.[1] || \"\",\n  seoKeywordHook: $json[\"title\"].replace(/AI-Now.*?:\\s?/i, \"\"),\n  publishDate: new Date().toISOString().split('T')[0],\n  youtubeLink: $json[\"link\"],\n  description: $json[\"description\"]\n}}];"
+      }
+    },
+    {
+      "id": "4",
+      "name": "Upload to Rumble",
+      "type": "httpRequest",
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.rumble.com/video/upload",
+        "authentication": "headerAuth",
+        "options": {
+          "body": {
+            "title": "={{$json[\"titleFormat\"]}}",
+            "description": "={{$json[\"description\"] + $json[\"descriptionFooter\"]}}",
+            "tags": "AI,Artificial Intelligence,Podcast,Technology",
+            "videoFile": "={{$binary[\"video\"]}}"
+          }
+        }
+      }
+    },
+    {
+      "id": "5",
+      "name": "Generate Short Clips",
+      "type": "aiClipper",
+      "parameters": {
+        "inputVideo": "={{$binary[\"video\"]}}",
+        "clipCount": 3,
+        "clipLength": "30s",
+        "watermark": "={{$json[\"logoPath\"]}}",
+        "captionStyle": "boldHook"
+      }
+    },
+    {
+      "id": "6",
+      "name": "Upload to Meta",
+      "type": "metaUpload",
+      "parameters": {
+        "platforms": ["facebookReels", "instagramReels"],
+        "video": "={{$binary[\"clip\"]}}",
+        "caption": "={{$json[\"seoKeywordHook\"]}} — full episode link in bio! {{$json[\"hashtagBank\"]}}"
+      }
+    },
+    {
+      "id": "7",
+      "name": "Upload to LinkedIn",
+      "type": "linkedInUpload",
+      "parameters": {
+        "video": "={{$binary[\"clip\"]}}",
+        "caption": "={{'Key insight from AI-Now Ep. ' + $json[\"episodeNumber\"] + ': ' + $json[\"seoKeywordHook\"] + ' — watch full episode here: ' + $json[\"youtubeLink\"]}}"
+      }
+    },
+    {
+      "id": "8",
+      "name": "Generate X Thread",
+      "type": "function",
+      "parameters": {
+        "functionCode": "return [{ json: {\n  tweets: [\n    `What does this mean for AI? ${$json[\"seoKeywordHook\"]} 🎥`,\n    'Key takeaway 1...',\n    'Key takeaway 2...',\n    `Full episode: ${$json[\"youtubeLink\"]}`\n  ]\n}}];"
+      }
+    },
+    {
+      "id": "9",
+      "name": "Post to X",
+      "type": "twitterPost",
+      "parameters": {
+        "thread": "={{$json[\"tweets\"]}}"
+      }
+    },
+    {
+      "id": "10",
+      "name": "Publish Tumblr Post",
+      "type": "tumblrPost",
+      "parameters": {
+        "title": "={{$json[\"titleFormat\"]}}",
+        "body": "={{'<iframe src=\"' + $json[\"youtubeLink\"] + '\"></iframe><p>' + $json[\"description\"] + '</p>'}}",
+        "tags": "AI,Tech,Podcast"
+      }
+    },
+    {
+      "id": "11",
+      "name": "Generate Show Notes",
+      "type": "aiTextGen",
+      "parameters": {
+        "prompt": "Generate SEO-optimized show notes for AI-Now Ep. {{$json[\"episodeNumber\"]}} with H2 headings, embedded player link {{$json[\"youtubeLink\"]}}, and all platform links."
+      }
+    },
+    {
+      "id": "12",
+      "name": "Publish to Local Site",
+      "type": "httpRequest",
+      "parameters": {
+        "method": "POST",
+        "url": "https://yourlocalsite.com/api/posts",
+        "body": {
+          "title": "={{$json[\"titleFormat\"]}}",
+          "content": "={{$json[\"text\"]}}"
+        }
+      }
+    },
+    {
+      "id": "13",
+      "name": "Log to Google Sheets",
+      "type": "googleSheets",
+      "parameters": {
+        "action": "append",
+        "sheetId": "YOUR_SHEET_ID",
+        "range": "ContentLog!A:E",
+        "values": "={{[$json[\"publishDate\"], $json[\"episodeNumber\"], $json[\"seoKeywordHook\"], $json[\"youtubeLink\"], 'Published']}}"
+      }
+    }
+  ],
+  "connections": {
+    "1": ["2"],
+    "2": ["3"],
+    "3": ["4", "5", "8", "10", "11", "13"],
+    "5": ["6", "7"],
+    "8": ["9"],
+    "11": ["12"]
+  }
+}
